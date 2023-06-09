@@ -102,6 +102,8 @@ async function run() {
       const result = await classesCollection.find().toArray();
       res.send(result);
     });
+
+    //get classes by id
     app.get("/classes/:id", async (req, res) => {
       const id = req.params.id;
       const result = await classesCollection.findOne({ _id: new ObjectId(id) });
@@ -117,15 +119,15 @@ async function run() {
 
     //update by instructor
     app.patch("/classes/:id", async (req, res) => {
-      const itemId = req.params.id; 
-      const updatedFields = req.body; 
-      console.log(itemId,updatedFields)
+      const itemId = req.params.id;
+      const updatedFields = req.body;
+      console.log(itemId, updatedFields);
 
       try {
         const result = await classesCollection.findOneAndUpdate(
-          { _id:new ObjectId(itemId) },
+          { _id: new ObjectId(itemId) },
           { $set: updatedFields },
-          {returnOriginal: false}
+          { returnOriginal: false }
         );
         res.send(result);
       } catch (error) {
@@ -164,6 +166,32 @@ async function run() {
         res.status(500).json({ error: "Internal server error" });
       }
     });
+
+
+    // //added students feald and incrisement
+    // app.patch("/classes/:id", async (req, res) => {
+    //   try {
+    //     const classId = req.params.id;
+    //     const { increment } = req.body;
+    
+    //     if (typeof increment !== "number") {
+    //       return res.status(400).json({ error: "Invalid increment value" });
+    //     }
+    
+    //     // Update the class by ID and increment the "students" field
+    //     const updatedClass = await classesCollection.findOneAndUpdate(
+    //       { _id: new ObjectId(classId) },
+    //       { $inc: { students: increment } },
+    //       { returnOriginal: false }
+    //     );
+    
+    //     res.json(updatedClass);
+    //   } catch (error) {
+    //     console.error("Error updating students field:", error);
+    //     res.status(500).json({ error: "Internal server error" });
+    //   }
+    // });
+    
 
     //selected classes post api
 
