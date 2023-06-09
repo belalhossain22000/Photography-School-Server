@@ -67,7 +67,7 @@ async function run() {
       if (existingUser) {
         return res.send({ message: "user already exists" });
       }
-      console.log(existingUser);
+      // console.log(existingUser);
 
       const result = await usersCollection.insertOne(user);
       res.send(result);
@@ -110,6 +110,55 @@ async function run() {
       res.send(result);
     });
 
+    // //update status classes api
+    // app.patch("/classes/:id", async (req, res) => {
+    //   try {
+    //     const classId = req.params.id;
+    //     // console.log(classId);
+    //     const { status } = req.body;
+    //     // console.log(status)
+
+    //     const result = await classesCollection.updateOne(
+    //       { _id: new ObjectId(classId) },
+    //       { $set: { status: status } }
+    //     );
+
+    //     res.send(result);
+    //   } catch (error) {
+    //     console.error(error);
+    //     res.status(500).json({ error: "Internal server error" });
+    //   }
+    // });
+
+    app.patch("/classes/:id", async (req, res) => {
+      try {
+        const classId = req.params.id;
+        const { status, feedback } = req.body;
+
+        if (status) {
+          // Update status
+          const result = await classesCollection.updateOne(
+            { _id: new ObjectId(classId) },
+            { $set: { status: status } }
+          );
+
+          res.send(result);
+        } else if (feedback) {
+          const result = await classesCollection.updateOne(
+            { _id: new ObjectId(classId) },
+            { $set: { feedback: feedback } }
+          );
+
+          res.send(result);
+        } else {
+          res.status(400).json({ error: "Invalid request" });
+        }
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    });
+
     //selected classes post api
 
     app.post("/postSelectedClasses", async (req, res) => {
@@ -130,7 +179,7 @@ async function run() {
     app.get("/selectedClasses/:email", async (req, res) => {
       try {
         const email = req.params.email;
-        console.log(email);
+        // console.log(email);
         const result = await SelectedClassesCollection.find({
           "selectedClasses.email": email,
         }).toArray();
@@ -141,6 +190,25 @@ async function run() {
         // Handle any errors that occur during the process
         console.error(error);
         res.status(500).json({ error: "Internal server error" });
+      }
+    });
+
+    // DELETE /selectedClasses/:email/:id
+    app.delete("/selectedClasses/:email/:id", async (req, res) => {
+      try {
+        const { email, id } = req.params;
+        // console.log
+
+        // Perform the deletion in the MongoDB database
+        const result = await SelectedClassesCollection.deleteOne({
+          "selectedClasses.email": email,
+          _id: new ObjectId(id),
+        });
+
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
       }
     });
 
