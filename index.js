@@ -102,6 +102,11 @@ async function run() {
       const result = await classesCollection.find().toArray();
       res.send(result);
     });
+    app.get("/classes/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await classesCollection.findOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
 
     //classes post api
     app.post("/classes", async (req, res) => {
@@ -110,25 +115,26 @@ async function run() {
       res.send(result);
     });
 
+    //update by instructor
+    app.patch("/classes/:id", async (req, res) => {
+      const itemId = req.params.id; 
+      const updatedFields = req.body; 
+      console.log(itemId,updatedFields)
+
+      try {
+        const result = await classesCollection.findOneAndUpdate(
+          { _id:new ObjectId(itemId) },
+          { $set: updatedFields },
+          {returnOriginal: false}
+        );
+        res.send(result);
+      } catch (error) {
+        console.error("Error updating item:", error);
+        res.status(500).send("Error updating item");
+      }
+    });
+
     // //update status classes api
-    // app.patch("/classes/:id", async (req, res) => {
-    //   try {
-    //     const classId = req.params.id;
-    //     // console.log(classId);
-    //     const { status } = req.body;
-    //     // console.log(status)
-
-    //     const result = await classesCollection.updateOne(
-    //       { _id: new ObjectId(classId) },
-    //       { $set: { status: status } }
-    //     );
-
-    //     res.send(result);
-    //   } catch (error) {
-    //     console.error(error);
-    //     res.status(500).json({ error: "Internal server error" });
-    //   }
-    // });
 
     app.patch("/classes/:id", async (req, res) => {
       try {
