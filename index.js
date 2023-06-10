@@ -24,7 +24,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     //------*************-------//
 
     const usersCollection = client.db("photoSchoolDb").collection("users");
@@ -167,31 +167,74 @@ async function run() {
       }
     });
 
+    //make payment api
 
-    // //added students feald and incrisement
+    app.patch("/makePayment/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+
+      try {
+        const result = await classesCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
+        if (!result) {
+          console.log("Class not found.");
+          res.status(404).send("Class not found.");
+          return;
+        }
+
+        const newStudent = parseInt(result.students) + 1;
+        const newSeats = parseInt(result.availableSeats) - 1;
+
+        const updateDoc = {
+          $set: {
+            students: newStudent,
+            availableSeats: newSeats,
+          },
+        };
+
+        // Update the document
+        const updateResult = await classesCollection.updateOne(
+          { _id: new ObjectId(id) },
+          updateDoc
+        );
+
+        if (updateResult.modifiedCount === 1) {
+          console.log("Class updated successfully.");
+          res.send("Payment successful");
+        } else {
+          console.log("Failed to update class.");
+          res.status(500).send("Failed to update class.");
+        }
+      } catch (error) {
+        console.log("Error updating class:", error);
+        res.status(500).send("Error updating class");
+      }
+    });
+
     // app.patch("/classes/:id", async (req, res) => {
     //   try {
     //     const classId = req.params.id;
     //     const { increment } = req.body;
-    
+
     //     if (typeof increment !== "number") {
     //       return res.status(400).json({ error: "Invalid increment value" });
     //     }
-    
+
     //     // Update the class by ID and increment the "students" field
     //     const updatedClass = await classesCollection.findOneAndUpdate(
     //       { _id: new ObjectId(classId) },
     //       { $inc: { students: increment } },
     //       { returnOriginal: false }
     //     );
-    
+
     //     res.json(updatedClass);
     //   } catch (error) {
     //     console.error("Error updating students field:", error);
     //     res.status(500).json({ error: "Internal server error" });
     //   }
     // });
-    
 
     //selected classes post api
 
