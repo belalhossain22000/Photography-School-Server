@@ -153,7 +153,7 @@ async function run() {
 
     //classes get api
 
-    app.get("/classes", async (req, res) => {
+    app.get("/classes",verifyJWT, async (req, res) => {
       const result = await classesCollection.find().toArray();
       res.send(result);
     });
