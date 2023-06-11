@@ -3,10 +3,35 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
-
+const stripe = require("stripe")(`${process.env.PAYMENT_SECRECT_KEY}`);
+const jwt = require("jsonwebtoken");
 // Enable  middleware
 app.use(cors());
 app.use(express.json());
+
+//verify jwt token
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "unauthorized access" });
+  }
+
+  const token = authorization.split(" ")[1];
+  console.log(token);
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res
+        .status(401)
+        .send({ error: true, message: "unauthorized access" });
+    }
+    req.decoded = decoded;
+
+    next();
+  });
+};
 
 // console.log(process.env.DB_USERNAME, process.env.DB_PASSWORD);
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -32,6 +57,36 @@ async function run() {
     const SelectedClassesCollection = client
       .db("photoSchoolDb")
       .collection("selectedClasses");
+
+    //jwt
+    app.post("/jwt", (req, res) => {
+      const email = req.body;
+      // console.log(email);
+      const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET_KEY, {
+        expiresIn: "1h",
+      });
+      // console.log(token);
+      res.send({ token });
+    });
+
+    //payment
+
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
+      console.log(price);
+      if (price) {
+        const amount = parseFloat(price) * 100;
+
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: "usd",
+          automatic_payment_methods: ["card"],
+        });
+        res.send({
+          clientSecret: paymentIntent.client_secret,
+        });
+      }
+    });
 
     //user get api
 
@@ -107,6 +162,14 @@ async function run() {
     app.get("/classes/:id", async (req, res) => {
       const id = req.params.id;
       const result = await classesCollection.findOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+    //get classes by email
+    app.get("/classess/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await classesCollection
+        .find({ instructorEmail: email })
+        .toArray();
       res.send(result);
     });
 
@@ -253,7 +316,7 @@ async function run() {
     });
 
     //get selected classes
-    app.get("/selectedClasses/:email", async (req, res) => {
+    app.get("/selectedClasses/:email",verifyJWT, async (req, res) => {
       try {
         const email = req.params.email;
         // console.log(email);
