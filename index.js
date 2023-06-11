@@ -19,7 +19,7 @@ const verifyJWT = (req, res, next) => {
   }
 
   const token = authorization.split(" ")[1];
-  console.log(token);
+  // console.log(token);
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET_KEY, (err, decoded) => {
     if (err) {
@@ -113,6 +113,7 @@ async function run() {
       }
     });
 
+    
     //user post api
     app.post("/users", async (req, res) => {
       const user = req.body;
