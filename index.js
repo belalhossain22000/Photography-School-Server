@@ -54,9 +54,12 @@ async function run() {
 
     const usersCollection = client.db("photoSchoolDb").collection("users");
     const classesCollection = client.db("photoSchoolDb").collection("classes");
+    const paymentCollection = client.db("photoSchoolDb").collection("payment");
     const SelectedClassesCollection = client
       .db("photoSchoolDb")
       .collection("selectedClasses");
+
+
 
     //jwt
     app.post("/jwt", (req, res) => {
@@ -76,17 +79,33 @@ async function run() {
       console.log(price);
       if (price) {
         const amount = parseFloat(price) * 100;
-
+    
         const paymentIntent = await stripe.paymentIntents.create({
           amount: amount,
           currency: "usd",
-          automatic_payment_methods: ["card"],
         });
         res.send({
           clientSecret: paymentIntent.client_secret,
         });
       }
     });
+
+    //save payment history
+    app.post("/save-payment-history", async (req, res) => {
+      try {
+        const body = req.body;
+        console.log(body);
+    
+        const result = await paymentCollection.insertOne(body);
+    
+        res.send(result);
+      } catch (error) {
+        console.error("Error saving payment history:", error);
+        res.status(500).json({ error: "Failed to save payment history" });
+      }
+    });
+    
+    
 
     //user get api
 
