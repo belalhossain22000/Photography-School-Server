@@ -113,7 +113,7 @@ async function run() {
       }
     });
 
-    
+
     //user post api
     app.post("/users", async (req, res) => {
       const user = req.body;
@@ -129,6 +129,7 @@ async function run() {
       res.send(result);
     });
 
+    
     //change role api
 
     app.patch("/users/:id", async (req, res) => {
@@ -154,7 +155,7 @@ async function run() {
 
     //classes get api
 
-    app.get("/classes",verifyJWT, async (req, res) => {
+    app.get("/classes", async (req, res) => {
       const result = await classesCollection.find().toArray();
       res.send(result);
     });
